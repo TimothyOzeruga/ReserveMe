@@ -32,5 +32,12 @@ export default {
 </script>
 
 <style lang="scss">
-
+    ul {
+        list-style: none;
+        padding: 0;
+    }
+    svg {
+        width: 16px;
+        height: 16px;
+    }
 </style>

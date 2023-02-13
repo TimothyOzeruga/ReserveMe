@@ -1,6 +1,6 @@
 <template>
     <div class="home">
-        <h2 v-if="!getUser" class="text-center">Sign in to create a board</h2>
+        <h2 v-if="!user" class="text-center">Sign in to create a board</h2>
         <template v-else>
             <div class="home__heading">
                 <h2>Boards:</h2>
@@ -24,17 +24,21 @@
 </template>
 
 <script>
-
-import { mapGetters } from "vuex";
+import { computed } from "vue";
+import { useStore } from 'vuex'
 
 export default {
     name: 'HomeView',
-    computed: {
-        ...mapGetters([
-            'getUser'
-        ])
-    },
-}
+    setup() {
+        const store = useStore();
+
+        const user = computed(() => store.getters.getUser);
+
+        return {
+            user
+        }
+    }
+};
 </script>
 
 <style lang="scss">

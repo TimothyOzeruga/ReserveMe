@@ -10,7 +10,8 @@
 </template>
 
 <script>
-import { mapActions } from 'vuex';
+import { useStore } from 'vuex'
+import { onMounted } from "vue";
 
 import Navbar from "./components/Navbar";
 
@@ -18,15 +19,14 @@ export default {
     components: {
         Navbar,
     },
-    mounted() {
-        if (localStorage.activeUser) {
-            this.setUser(localStorage.activeUser);
-        }
-    },
-    methods: {
-        ...mapActions([
-            'setUser'
-        ]),
+    setup() {
+        const store = useStore();
+
+        onMounted(() => {
+            if (localStorage.activeUser) {
+                store.dispatch('setUser', localStorage.activeUser);
+            }
+        });
     }
 };
 </script>

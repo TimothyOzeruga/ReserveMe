@@ -16,7 +16,7 @@
                                             errors.username ? 'is-invalid' : ''
                                         }`"
                                         placeholder="Username"
-                                        v-model="username"
+                                        v-model="credentials.username"
                                     />
                                     <div class="invalid-feedback">{{ errors.username }}</div>
                                 </div>
@@ -27,7 +27,7 @@
                                             errors.password ? 'is-invalid' : ''
                                         }`"
                                         placeholder="Password"
-                                        v-model="password"
+                                        v-model="credentials.password"
                                     />
                                     <div class="invalid-feedback">{{ errors.password }}</div>
                                 </div>
@@ -44,81 +44,28 @@
 </template>
 
 <script>
-import validator from "validator";
-import { mapActions } from 'vuex';
+import {reactive} from "vue";
+import {useStore} from 'vuex'
+import {useRouter} from "vue-router";
+import UseLogin from "@/hooks/useLogin";
 
 export default {
-    data() {
+    setup() {
+        const store = useStore();
+        const router = useRouter();
+
+        if(store.getters.getUser) {
+            router.push('/');
+        }
+
+        const credentials = reactive({
+            username: '',
+            password: '',
+        });
+
         return {
-            username: "",
-            password: "",
-            errors: {},
-        };
-    },
-    methods: {
-        ...mapActions([
-            'setUser'
-        ]),
-        loginUser() {
-            const credentials = {
-                username: this.username,
-                password: this.password,
-            };
-
-            const {isInvalid, errors} = this.validateLoginInput(credentials);
-
-            if (isInvalid) {
-                this.errors = errors;
-            } else {
-                this.errors = {};
-
-                if (!localStorage.users) {
-                    this.errors.username = "Username does not exist!";
-                }
-
-                const lsUsers = JSON.parse(localStorage.users);
-
-                const usernameIndex = lsUsers.findIndex(
-                    (user) => user.username === credentials.username
-                );
-
-                if (usernameIndex > -1) {
-                    const passwordIndex = lsUsers.findIndex(
-                        (user) => user.password === credentials.password
-                    );
-
-                    if (passwordIndex > -1) {
-                        const activeUser = lsUsers.find(
-                            (user) => user.username === credentials.username
-                        );
-                        localStorage.setItem("activeUser", JSON.stringify(activeUser));
-                        this.setUser(activeUser);
-                        this.$router.push('/');
-                    } else {
-                        this.errors.password = "Password does not match!";
-                    }
-                } else {
-                    this.errors.username = "Username does not exist!";
-                }
-            }
-        },
-        validateLoginInput(data) {
-            const errors = {};
-
-            const {username, password} = data;
-
-            if (validator.isEmpty(username)) {
-                errors.username = "Username field is required.";
-            }
-
-            if (validator.isEmpty(password)) {
-                errors.password = "Password field is required.";
-            }
-
-            return {
-                isInvalid: Object.keys(errors).length > 0,
-                errors: errors,
-            };
+            credentials,
+            ...UseLogin(credentials)
         }
     },
 };

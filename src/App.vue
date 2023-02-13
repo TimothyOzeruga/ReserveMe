@@ -5,6 +5,7 @@
             <div class="container">
                 <router-view/>
             </div>
+            <div id="modal" />
         </main>
     </div>
 </template>

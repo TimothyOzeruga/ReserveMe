@@ -40,7 +40,7 @@ export default {
             },
             2: {
                 fullName: 'Tuesday',
-                    shortName: 'W',
+                    shortName: 'Tue',
             },
             3: {
                 fullName: 'Wednesday',

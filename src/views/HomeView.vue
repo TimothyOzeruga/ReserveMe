@@ -27,6 +27,7 @@
                 <CreateBoard v-if="createBoardVisible" @sendBoard="receiveBoard" @close="createBoardVisible = false"/>
             </teleport>
         </template>
+        <Calendar></Calendar>
     </div>
 </template>
 
@@ -34,10 +35,14 @@
 import {computed, onMounted, ref} from "vue";
 import { useStore } from 'vuex'
 import CreateBoard from "@/components/CreateBoard";
+import Calendar from "@/components/Calendar";
 
 export default {
     name: 'HomeView',
-    components: {CreateBoard},
+    components: {
+        CreateBoard,
+        Calendar
+    },
     setup() {
         const store = useStore();
 

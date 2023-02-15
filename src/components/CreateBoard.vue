@@ -53,11 +53,14 @@
 
 <script>
 import {reactive, ref} from "vue";
+import { useStore } from 'vuex'
 import validator from "validator";
 
 export default {
     name: "CreateBoard",
     setup(props, context) {
+        const store = useStore();
+
         const boardInfo = reactive({
             name: "",
             days: [
@@ -148,7 +151,8 @@ export default {
             if (validator.isEmpty(boardInfo.name)) {
                 errors.value.name = "Username field is required.";
             } else {
-                context.emit('sendBoard', boardInfo);
+                store.dispatch('setBoard', boardInfo);
+                close();
             }
         }
 

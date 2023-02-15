@@ -36,7 +36,6 @@ export default {
             1: {
                 fullName: 'Monday',
                     shortName: 'Mon',
-
             },
             2: {
                 fullName: 'Tuesday',
@@ -83,8 +82,14 @@ export default {
         ]);
         const schedule = ref([
             {
-                date:"2023-02-15 15:00",
-                is_reservation: false
+                date:"2023-02-16 12:00",
+                is_reservation: false,
+                is_disabled: false
+            },
+            {
+                date:"2023-02-16 16:00",
+                is_reservation: false,
+                is_disabled: true
             }
         ]);
 
@@ -100,7 +105,8 @@ export default {
             const blockTime = moment().isoWeek(currentWeek.value).weekday(day).format("YYYY-MM-DD ") + time;
 
             const classesObj = {
-                'schedule-block__calendar-col-time-item--disable': moment(blockTime).isBefore(moment().format("YYYY-MM-DD h:mm")),
+                'schedule-block__calendar-col-time-item--disable': moment(blockTime).isBefore(moment().format("YYYY-MM-DD HH:mm"))
+                || scheduleItem?.is_disabled === true,
                 'schedule-block__calendar-col-time-item--booked': scheduleItem !== undefined && scheduleItem?.is_reservation === false,
             }
 
@@ -116,7 +122,8 @@ export default {
 
             const obj = {
                 date: blockTime,
-                is_reservation: false
+                is_reservation: false,
+                is_disabled: false
             }
             schedule.value.push(obj);
         }
@@ -177,20 +184,19 @@ export default {
             letter-spacing: -0.2px;
         }
 
-        &--disable {
-            background: #fcfcfc;
-            color: #d0d0d0;
-            cursor: not-allowed;
-            border: 1px solid transparent;
-        }
-
         &--booked {
             background: #f5f5f5;
             color: #bbb;
             cursor: not-allowed;
             border-color: #00000011;
         }
-    }
 
+        &--disable {
+            background: #fcfcfc;
+            color: #d0d0d0;
+            cursor: not-allowed;
+            border: 1px solid transparent;
+        }
+    }
 }
 </style>

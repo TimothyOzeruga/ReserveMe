@@ -27,6 +27,9 @@ export default {
             if (localStorage.activeUser) {
                 store.dispatch('setUser', localStorage.activeUser);
             }
+            if (localStorage.boards) {
+                store.dispatch('setBoards', JSON.parse(localStorage.boards));
+            }
         });
     }
 };

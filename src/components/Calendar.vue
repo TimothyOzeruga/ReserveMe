@@ -15,9 +15,18 @@
                     @click="calendarButtonDisabled({time, day}) && selectDate({time, day})"
                 >
                     {{ time }}
+                    <div v-html="tooltipText({ time, day })" class="schedule-block__tooltip" />
                 </div>
             </div>
         </div>
+        <teleport to="#modal">
+            <Booking
+                v-if="bookingModalVisible"
+                :block-time="blockTime"
+                @booked="bookTime"
+                @close="closeBookingModal"
+            />
+        </teleport>
     </div>
 </template>
 
@@ -25,9 +34,13 @@
 import moment from 'moment'
 import {onMounted, ref, toRefs} from "vue";
 import {useStore} from "vuex";
+import Booking from "@/components/Booking";
 
 export default {
     name: 'Calendar',
+    components: {
+        Booking
+    },
     props: {
         boardId: {
           type: [Number, String],
@@ -139,16 +152,35 @@ export default {
             return moment().isoWeek(currentWeek.value).weekday(number).format("D");
         }
 
-        const selectDate = ({time, day}) => {
+        const tooltipText = ({time, day}) => {
+            const scheduleItem = findScheduleItemByTime({time, day});
             const blockTime = moment().isoWeek(currentWeek.value).weekday(day).format("YYYY-MM-DD ") + time;
 
-            const selectedDate = {
-                date: blockTime,
-                is_reservation: false,
-                is_disabled: false
+            if(moment(blockTime).isBefore(moment().format("YYYY-MM-DD HH:mm")) || scheduleItem?.is_disabled === true){
+                return 'Unavailable'
+            }
+            if(scheduleItem !== undefined && scheduleItem?.is_reservation === false && scheduleItem?.is_disabled === false){
+                return `<h5 class="mb-0">${scheduleItem.name}</h5><div>${scheduleItem.description}</div>`
             }
 
-            return store.dispatch("setSchedule", { value: selectedDate, boardId: props.boardId });
+            return 'Book Time';
+        }
+
+        const bookingModalVisible = ref(false);
+
+        const closeBookingModal = () => {
+            bookingModalVisible.value = false;
+        }
+
+        const blockTime = ref("");
+
+        const selectDate = ({time, day}) => {
+            blockTime.value = moment().isoWeek(currentWeek.value).weekday(day).format("YYYY-MM-DD ") + time;
+            bookingModalVisible.value = true;
+        }
+
+        const bookTime = (bookInfo) => {
+            return store.dispatch("setSchedule", { value: bookInfo, boardId: props.boardId });
         }
 
         return {
@@ -158,7 +190,12 @@ export default {
             calendarButton,
             calendarButtonDisabled,
             dayNumber,
-            selectDate
+            tooltipText,
+            selectDate,
+            blockTime,
+            closeBookingModal,
+            bookingModalVisible,
+            bookTime
         }
     }
 }
@@ -218,6 +255,40 @@ export default {
             color: #d0d0d0;
             cursor: not-allowed;
             border: 1px solid transparent;
+        }
+
+        &:hover {
+            position: relative;
+            border: 1px solid #888;
+
+            .schedule-block__tooltip{
+                display: block;
+            }
+        }
+    }
+
+    &__tooltip {
+        display: none;
+        position: absolute;
+        left: 50%;
+        top: calc(100% + 10px);
+        transform: translateX(-50%);
+        padding: 4px 8px;
+        border-radius: 5px;
+        background: #333;
+        color: #d0d0d0;
+        white-space: nowrap;
+        z-index: 2500;
+
+        &::after {
+            content: "";
+            position: absolute;
+            top: -15px;
+            left: 50%;
+            transform: translate(-50%, 0);
+            border: 6px solid transparent;
+            border-bottom: 10px solid #333;
+            z-index: 12;
         }
     }
 }

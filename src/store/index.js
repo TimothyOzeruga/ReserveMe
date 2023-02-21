@@ -40,9 +40,14 @@ export default createStore({
             state.boards = value;
             localStorage.setItem("boards", JSON.stringify(getters.getBoards));
         },
-        removeBoard({ state }, index) {
+        removeBoard({ state, getters }, index) {
             state.boards.splice(index, 1);
-            localStorage.setItem("boards", JSON.stringify(state.boards));
+
+            if (getters.getBoards.length === 0) {
+                localStorage.removeItem("boards");
+            } else {
+                localStorage.setItem("boards", JSON.stringify(getters.getBoards));
+            }
         },
         setSchedule({ commit, getters }, { value, boardId }) {
             commit('MUTATE_SCHEDULE', { value, boardId });

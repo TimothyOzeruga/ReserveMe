@@ -12,7 +12,7 @@
                     :key="time + Math.random() * 100"
                     class="schedule-block__calendar-col-time-item"
                     :class="calendarButton({time, day})"
-                    @click="selectDate({time, day})"
+                    @click="calendarButtonDisabled({time, day}) && selectDate({time, day})"
                 >
                     {{ time }}
                 </div>
@@ -23,16 +23,28 @@
 
 <script>
 import moment from 'moment'
-import {reactive, ref} from "vue";
+import {onMounted, ref, toRefs} from "vue";
+import {useStore} from "vuex";
 
 export default {
     name: 'Calendar',
-    setup() {
-        // const currentDate = ref(moment(new Date()));
+    props: {
+        boardId: {
+          type: [Number, String],
+          required: true
+        },
+        boardInfo: {
+            type: Object,
+            required: true
+        },
+    },
+    setup(props) {
+        const store = useStore();
+        const { boardInfo } = toRefs(props);
+
         const selectedDate = ref(moment(new Date()));
         const currentWeek = ref(moment(new Date()).isoWeek());
-        const selectedWeek = ref(moment(new Date()).isoWeek());
-        const dayNames = reactive({
+        const dayNames = {
             1: {
                 fullName: 'Monday',
                     shortName: 'Mon',
@@ -62,8 +74,16 @@ export default {
                     shortName: 'Sun',
             },
 
-        });
+        };
         const times = ref([
+            '00:00',
+            '01:00',
+            '02:00',
+            '03:00',
+            '04:00',
+            '05:00',
+            '06:00',
+            '07:00',
             '08:00',
             '09:00',
             '10:00',
@@ -79,24 +99,23 @@ export default {
             '20:00',
             '21:00',
             '22:00',
+            '23:00',
         ]);
-        const schedule = ref([
-            {
-                date:"2023-02-16 12:00",
-                is_reservation: false,
-                is_disabled: false
-            },
-            {
-                date:"2023-02-16 16:00",
-                is_reservation: false,
-                is_disabled: true
-            }
-        ]);
+
+        const calculateTimes = (minHour, maxHour) => {
+            return times.value = times.value.slice(minHour, maxHour);
+        }
+
+        onMounted(() => {
+            calculateTimes(boardInfo.value.minHour, boardInfo.value.maxHour + 1);
+        });
+
+        const schedule = ref(store.getters.getSchedule(props.boardId));
 
         const findScheduleItemByTime = ({time, day}) => {
             const d = selectedDate.value.isoWeekday(day).format("YYYY-MM-DD");
-            return schedule.value.find(scheduleItem => {
-                return scheduleItem.date === `${d} ${time}`
+            return schedule.value?.find(scheduleItem => {
+                return scheduleItem?.date === `${d} ${time}`
             });
         }
 
@@ -104,34 +123,40 @@ export default {
             const scheduleItem = findScheduleItemByTime({time, day});
             const blockTime = moment().isoWeek(currentWeek.value).weekday(day).format("YYYY-MM-DD ") + time;
 
-            const classesObj = {
+            return {
                 'schedule-block__calendar-col-time-item--disable': moment(blockTime).isBefore(moment().format("YYYY-MM-DD HH:mm"))
-                || scheduleItem?.is_disabled === true,
+                    || scheduleItem?.is_disabled === true,
                 'schedule-block__calendar-col-time-item--booked': scheduleItem !== undefined && scheduleItem?.is_reservation === false,
             }
+        }
 
-            return classesObj;
+        const calendarButtonDisabled = ({time, day}) => {
+            const classes = calendarButton({time, day});
+            return !classes['schedule-block__calendar-col-time-item--disable'] && !classes['schedule-block__calendar-col-time-item--booked'];
         }
 
         const dayNumber = (number) => {
-            return moment().isoWeek(selectedWeek.value).weekday(number).format("D");
+            return moment().isoWeek(currentWeek.value).weekday(number).format("D");
         }
 
         const selectDate = ({time, day}) => {
-            const blockTime = moment().isoWeek(selectedWeek.value).weekday(day).format("YYYY-MM-DD ") + time;
+            const blockTime = moment().isoWeek(currentWeek.value).weekday(day).format("YYYY-MM-DD ") + time;
 
-            const obj = {
+            const selectedDate = {
                 date: blockTime,
                 is_reservation: false,
                 is_disabled: false
             }
-            schedule.value.push(obj);
+
+            return store.dispatch("setSchedule", { value: selectedDate, boardId: props.boardId });
         }
 
         return {
+            schedule,
             times,
             dayNames,
             calendarButton,
+            calendarButtonDisabled,
             dayNumber,
             selectDate
         }
@@ -145,14 +170,12 @@ export default {
 
     &__calendar {
         display: flex;
-        //overflow-x: auto;
     }
 
     &__calendar-col {
         flex-grow: 1;
         padding: 0 2px;
         flex: 1;
-        //min-width: 44px;
     }
 
     &__calendar-col-header {
@@ -171,7 +194,6 @@ export default {
         position: relative;
         text-align: center;
         padding: 5px 0;
-        //background: #fcfcfc;
         margin-bottom: 4px;
         font-size: 14px;
         -webkit-border-radius: 3px;
@@ -185,8 +207,8 @@ export default {
         }
 
         &--booked {
-            background: #f5f5f5;
-            color: #bbb;
+            background: #ededed;
+            color: #a4a4a4;
             cursor: not-allowed;
             border-color: #00000011;
         }

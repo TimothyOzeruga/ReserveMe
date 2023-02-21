@@ -22,21 +22,14 @@
                     </div>
                     <hr>
                     <div class="mb-4 fw-semibold">Set the hours you are available:</div>
-                    <div v-for="day in boardInfo.days" :key="day + Math.random() * 100" class="day form-group">
+                    <div v-for="day in days" :key="day + Math.random() * 100" class="day form-group">
                         <span class="day__name">{{ day.name }}</span>
                         <div class="day__times">
                             <Datepicker
-                                v-model="day.start"
+                                v-model="day.date"
                                 time-picker
+                                range
                                 minutes-increment="60"
-                                hide-input-icon
-                                class="day__time"
-                            />
-                            -
-                            <Datepicker
-                                v-model="day.end" time-picker
-                                minutes-increment="60"
-                                hide-input-icon
                                 class="day__time"
                             />
                         </div>
@@ -55,103 +48,193 @@
 import {reactive, ref} from "vue";
 import { useStore } from 'vuex'
 import validator from "validator";
+import moment from "moment";
 
 export default {
     name: "CreateBoard",
     setup(props, context) {
         const store = useStore();
 
-        const boardInfo = reactive({
-            name: "",
-            days: [
-                {
-                    name: 'Monday',
-                    start: {
+        const days = ref([
+            {
+                name: 'Monday',
+                date: [
+                    {
                         hours: 8,
-                        minutes: 0o0
+                        minutes: 0,
+                        seconds: 0
                     },
-                    end: {
+                    {
                         hours: 18,
-                        minutes: 0o0
+                        minutes: 0,
+                        seconds: 0
                     }
-                },
-                {
-                    name: 'Tuesday',
-                    start: {
+                ],
+            },
+            {
+                name: 'Tuesday',
+                date: [
+                    {
                         hours: 8,
-                        minutes: 0o0
+                        minutes: 0,
+                        seconds: 0
                     },
-                    end: {
+                    {
                         hours: 18,
-                        minutes: 0o0
+                        minutes: 0,
+                        seconds: 0
                     }
-                },
-                {
-                    name: 'Wednesday',
-                    start: {
+                ],
+            },
+            {
+                name: 'Wednesday',
+                date: [
+                    {
                         hours: 8,
-                        minutes: 0o0
+                        minutes: 0,
+                        seconds: 0
                     },
-                    end: {
+                    {
                         hours: 18,
-                        minutes: 0o0
+                        minutes: 0,
+                        seconds: 0
                     }
-                },
-                {
-                    name: 'Thursday',
-                    start: {
+                ],
+            },
+            {
+                name: 'Thursday',
+                date: [
+                    {
                         hours: 8,
-                        minutes: 0o0
+                        minutes: 0,
+                        seconds: 0
                     },
-                    end: {
+                    {
                         hours: 18,
-                        minutes: 0o0
+                        minutes: 0,
+                        seconds: 0
                     }
-                },
-                {
-                    name: 'Friday',
-                    start: {
+                ],
+            },
+            {
+                name: 'Friday',
+                date: [
+                    {
                         hours: 8,
-                        minutes: 0o0
+                        minutes: 0,
+                        seconds: 0
                     },
-                    end: {
+                    {
                         hours: 18,
-                        minutes: 0o0
+                        minutes: 0,
+                        seconds: 0
                     }
-                },
-                {
-                    name: 'Saturday',
-                    start: {
+                ],
+            },
+            {
+                name: 'Saturday',
+                date: [
+                    {
                         hours: 8,
-                        minutes: 0o0
+                        minutes: 0,
+                        seconds: 0
                     },
-                    end: {
+                    {
                         hours: 18,
-                        minutes: 0o0
+                        minutes: 0,
+                        seconds: 0
                     }
-                },
-                {
-                    name: 'Sunday',
-                    start: {
+                ],
+            },
+            {
+                name: 'Sunday',
+                date: [
+                    {
                         hours: 8,
-                        minutes: 0o0
+                        minutes: 0,
+                        seconds: 0
                     },
-                    end: {
+                    {
                         hours: 18,
-                        minutes: 0o0
+                        minutes: 0,
+                        seconds: 0
                     }
-                },
-            ]
-        });
+                ],
+            },
+        ]);
         let errors = ref({});
 
-        const createBoard = () => {
+        const boardInfo = reactive({
+            name: "",
+            days: days.value,
+            minHour: days.value[0].date[0].hours,
+            maxHour: days.value[0].date[1].hours,
+            schedule: []
+        });
+
+        const countMinMaxHours = () => {
+            boardInfo?.days.forEach(day => {
+                if(boardInfo.minHour > day.date[0].hours) {
+                    boardInfo.minHour = day.date[0].hours
+                }
+
+                if(boardInfo.maxHour < day.date[1].hours) {
+                    boardInfo.maxHour = day.date[1].hours
+                }
+            });
+
+            getDisabledDates();
+        }
+
+        const getDisabledDates = () => {
+            const currentWeek = ref(moment(new Date()).isoWeek());
+            const minHour = boardInfo.minHour;
+            const maxHour = boardInfo.maxHour;
+            const disabledDates = [];
+
+            boardInfo.days.forEach((day, index) => {
+                const disabledHours = [];
+                const minDayHour = day.date[0].hours;
+                const maxDayHour = day.date[1].hours;
+
+                if(minDayHour > minHour) {
+                    const diff = minDayHour - minHour;
+
+                    for(let i = 1; i <= diff; i++) {
+                        disabledHours.push(moment().hour(minDayHour - i).format('HH:00'));
+                    }
+                }
+
+                if(maxDayHour < maxHour) {
+                    const diff = maxHour - maxDayHour;
+
+                    for(let i = 1; i <= diff; i++) {
+                        disabledHours.push(moment().hour(maxDayHour + i).format('HH:00'));
+                    }
+                }
+
+                disabledHours.forEach(hour => {
+                    const disabledDate = moment().isoWeek(currentWeek.value).weekday(index + 1).format("YYYY-MM-DD ") + hour;
+
+                    disabledDates.push({
+                        date: disabledDate,
+                        is_reservation: false,
+                        is_disabled: true,
+                    })
+                });
+            });
+
+            boardInfo.schedule.push(...disabledDates);
+        }
+
+        const createBoard = async () => {
             errors.value = {}
 
             if (validator.isEmpty(boardInfo.name)) {
                 errors.value.name = "Username field is required.";
             } else {
-                store.dispatch('setBoard', boardInfo);
+                await countMinMaxHours();
+                await store.dispatch('setBoard', boardInfo);
                 close();
             }
         }
@@ -161,6 +244,7 @@ export default {
         }
 
         return {
+            days,
             boardInfo,
             errors,
             createBoard,
@@ -223,7 +307,7 @@ export default {
             }
 
             &__time {
-                width: 100px;
+                width: 160px;
             }
 
             ::v-deep {

@@ -1,7 +1,7 @@
 <template>
  <div>
      <h2 class="text-center mb-4">Board {{ boardInfo.name }}</h2>
-     <Calendar></Calendar>
+     <Calendar :board-id="boardId" :board-info="boardInfo"></Calendar>
  </div>
 </template>
 

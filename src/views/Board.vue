@@ -1,5 +1,8 @@
 <template>
- <div>
+ <div class="board">
+     <router-link to="/" class="board__back-link">
+         <svg class="board__arrow" version="1.1" viewBox="0 0 15.699 8.707"><polygon points="15.699,3.854 1.914,3.854 5.061,0.707 4.354,0 0,4.354 4.354,8.707 5.061,8 1.914,4.854 15.699,4.854 "/></svg>
+     </router-link>
      <h2 class="text-center mb-4">Board {{ boardInfo.name }}</h2>
      <Calendar :board-id="boardId" :board-info="boardInfo"></Calendar>
  </div>
@@ -29,6 +32,19 @@ export default {
 }
 </script>
 
-<style scoped>
-
+<style lang="scss" scoped>
+    .board {
+        &__back-link {
+            padding: 6px 12px;
+            border: 2px solid #666;
+            border-radius: 12px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+        &__arrow {
+           width: 28px;
+           height: 28px;
+        }
+    }
 </style>

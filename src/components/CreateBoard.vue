@@ -25,13 +25,17 @@
                     <div v-for="day in days" :key="day + Math.random() * 100" class="day form-group">
                         <span class="day__name">{{ day.name }}</span>
                         <div class="day__times">
-                            <Datepicker
-                                v-model="day.date"
-                                time-picker
-                                range
-                                minutes-increment="60"
-                                class="day__time"
-                            />
+                            <div class="input-group-text">
+                                <input v-model="day.is_available" class="form-check-input mt-0 me-2" type="checkbox">
+                                <Datepicker
+                                    v-model="day.date"
+                                    time-picker
+                                    range
+                                    minutes-increment="60"
+                                    :disabled="!day.is_available"
+                                    class="day__time"
+                                />
+                            </div>
                         </div>
                     </div>
                     <hr>
@@ -70,6 +74,7 @@ export default {
                         seconds: 0
                     }
                 ],
+                is_available: true
             },
             {
                 name: 'Tuesday',
@@ -85,6 +90,7 @@ export default {
                         seconds: 0
                     }
                 ],
+                is_available: true
             },
             {
                 name: 'Wednesday',
@@ -100,6 +106,7 @@ export default {
                         seconds: 0
                     }
                 ],
+                is_available: true
             },
             {
                 name: 'Thursday',
@@ -115,6 +122,7 @@ export default {
                         seconds: 0
                     }
                 ],
+                is_available: true
             },
             {
                 name: 'Friday',
@@ -130,6 +138,7 @@ export default {
                         seconds: 0
                     }
                 ],
+                is_available: true
             },
             {
                 name: 'Saturday',
@@ -145,6 +154,7 @@ export default {
                         seconds: 0
                     }
                 ],
+                is_available: true
             },
             {
                 name: 'Sunday',
@@ -160,6 +170,7 @@ export default {
                         seconds: 0
                     }
                 ],
+                is_available: true
             },
         ]);
         let errors = ref({});
@@ -196,6 +207,14 @@ export default {
                 const disabledHours = [];
                 const minDayHour = day.date[0].hours;
                 const maxDayHour = day.date[1].hours;
+
+                if(!day.is_available) {
+                    const diff = maxHour - minHour;
+
+                    for(let i = 0; i <= diff; i++) {
+                        disabledHours.push(moment().hour(maxHour - i).format('HH:00'));
+                    }
+                }
 
                 if(minDayHour > minHour) {
                     const diff = minDayHour - minHour;

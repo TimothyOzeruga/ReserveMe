@@ -34,6 +34,9 @@
                                     minutes-increment="60"
                                     :disabled="!day.is_available"
                                     class="day__time"
+                                    :class="{
+                                        'day__time--disabled' : !day.is_available
+                                    }"
                                 />
                             </div>
                         </div>
@@ -234,9 +237,16 @@ export default {
 
                 disabledHours.forEach(hour => {
                     const disabledDate = moment().isoWeek(currentWeek.value).weekday(index + 1).format("YYYY-MM-DD ") + hour;
+                    const disabledDateNextWeek = moment().isoWeek(currentWeek.value + 1).weekday(index + 1).format("YYYY-MM-DD ") + hour;
 
                     disabledDates.push({
                         date: disabledDate,
+                        is_reservation: false,
+                        is_disabled: true,
+                    });
+
+                    disabledDates.push({
+                        date: disabledDateNextWeek,
                         is_reservation: false,
                         is_disabled: true,
                     })
@@ -326,7 +336,21 @@ export default {
             }
 
             &__time {
+                position: relative;
                 width: 160px;
+
+                &--disabled {
+                    &::after {
+                        content: '';
+                        width: 90%;
+                        height: 2px;
+                        background: #232e35;
+                        position: absolute;
+                        top: 50%;
+                        left: 50%;
+                        transform: translateX(-50%);
+                    }
+                }
             }
 
             ::v-deep {

@@ -1,21 +1,47 @@
 <template>
-    <div class="schedule-block__calendar">
-        <div v-for="day of 7" :key="day" class="schedule-block__calendar-col">
-            <div class="schedule-block__calendar-col-header">
-                <span class="d-lg-none">{{ dayNames[day].shortName }}</span>
-                <span class="d-none d-lg-block">{{ dayNames[day].fullName }}</span>
-                {{ dayNumber(day) }}
-            </div>
-            <div class="schedule-block__calendar-col-time">
-                <div
-                    v-for="time in times"
-                    :key="time + Math.random() * 100"
-                    class="schedule-block__calendar-col-time-item"
-                    :class="calendarButton({time, day})"
-                    @click="calendarButtonDisabled({time, day}) && selectDate({time, day})"
-                >
-                    {{ time }}
-                    <div v-html="tooltipText({ time, day })" class="schedule-block__tooltip" />
+    <div class="schedule-block">
+        <div class="schedule-block__header">
+            <span
+                class="schedule-block__arrow me-1"
+                @click="setPrevWeek"
+                :class="{
+                    'schedule-block__arrow--disabled' : currentWeek === selectedWeek
+                }"
+            >
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16">
+                    <path d="M11.7 2.7a1 1 0 00-1.4-1.4l-6 6a1 1 0 000 1.4l6 6a1 1 0 001.4-1.4L6.4 8l5.3-5.3z"></path>
+                </svg>
+            </span>
+            <span
+                class="schedule-block__arrow"
+                :class="{
+                    'schedule-block__arrow--disabled' : selectedWeek - currentWeek > 0
+                }"
+                @click="setNextWeek"
+            >
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16">
+                    <path d="M4.3 13.3a1 1 0 001.4 1.4l6-6c.4-.4.4-1 0-1.4l-6-6a1 1 0 00-1.4 1.4L9.6 8l-5.3 5.3z"></path>
+                </svg>
+            </span>
+        </div>
+        <div class="schedule-block__calendar">
+            <div v-for="day of 7" :key="day" class="schedule-block__calendar-col">
+                <div class="schedule-block__calendar-col-header">
+                    <span class="d-lg-none">{{ dayNames[day].shortName }}</span>
+                    <span class="d-none d-lg-block">{{ dayNames[day].fullName }}</span>
+                    {{ dayNumber(day) }}
+                </div>
+                <div class="schedule-block__calendar-col-time">
+                    <div
+                        v-for="time in times"
+                        :key="time + Math.random() * 100"
+                        class="schedule-block__calendar-col-time-item"
+                        :class="calendarButton({time, day})"
+                        @click="calendarButtonDisabled({time, day}) && selectDate({time, day})"
+                    >
+                        {{ time }}
+                        <div v-html="tooltipText({ time, day })" class="schedule-block__tooltip" />
+                    </div>
                 </div>
             </div>
         </div>
@@ -57,6 +83,7 @@ export default {
 
         const selectedDate = ref(moment(new Date()));
         const currentWeek = ref(moment(new Date()).isoWeek());
+        const selectedWeek = ref(moment(new Date()).isoWeek());
         const dayNames = {
             1: {
                 fullName: 'Monday',
@@ -134,7 +161,7 @@ export default {
 
         const calendarButton = ({time, day}) => {
             const scheduleItem = findScheduleItemByTime({time, day});
-            const blockTime = moment().isoWeek(currentWeek.value).weekday(day).format("YYYY-MM-DD ") + time;
+            const blockTime = moment().isoWeek(selectedWeek.value).weekday(day).format("YYYY-MM-DD ") + time;
 
             return {
                 'schedule-block__calendar-col-time-item--disable': moment(blockTime).isBefore(moment().format("YYYY-MM-DD HH:mm"))
@@ -149,12 +176,12 @@ export default {
         }
 
         const dayNumber = (number) => {
-            return moment().isoWeek(currentWeek.value).weekday(number).format("D");
+            return moment().isoWeek(selectedWeek.value).weekday(number).format("D");
         }
 
         const tooltipText = ({time, day}) => {
             const scheduleItem = findScheduleItemByTime({time, day});
-            const blockTime = moment().isoWeek(currentWeek.value).weekday(day).format("YYYY-MM-DD ") + time;
+            const blockTime = moment().isoWeek(selectedWeek.value).weekday(day).format("YYYY-MM-DD ") + time;
 
             if(moment(blockTime).isBefore(moment().format("YYYY-MM-DD HH:mm")) || scheduleItem?.is_disabled === true){
                 return 'Unavailable'
@@ -166,6 +193,16 @@ export default {
             return 'Book Time';
         }
 
+        const setNextWeek = () => {
+            selectedWeek.value += 1;
+            selectedDate.value.add(7, 'days');
+        }
+
+        const setPrevWeek = () => {
+            selectedWeek.value -= 1;
+            selectedDate.value.subtract(7, 'days');
+        }
+
         const bookingModalVisible = ref(false);
 
         const closeBookingModal = () => {
@@ -175,7 +212,7 @@ export default {
         const blockTime = ref("");
 
         const selectDate = ({time, day}) => {
-            blockTime.value = moment().isoWeek(currentWeek.value).weekday(day).format("YYYY-MM-DD ") + time;
+            blockTime.value = moment().isoWeek(selectedWeek.value).weekday(day).format("YYYY-MM-DD ") + time;
             bookingModalVisible.value = true;
         }
 
@@ -187,10 +224,14 @@ export default {
             schedule,
             times,
             dayNames,
+            currentWeek,
+            selectedWeek,
             calendarButton,
             calendarButtonDisabled,
             dayNumber,
             tooltipText,
+            setNextWeek,
+            setPrevWeek,
             selectDate,
             blockTime,
             closeBookingModal,
@@ -204,6 +245,33 @@ export default {
 <style lang="scss" scoped>
 
 .schedule-block {
+
+    &__header {
+        display: flex;
+        justify-content: flex-end;
+        align-items: center;
+        margin-bottom: 16px;
+    }
+
+    &__arrow {
+        padding: 0 8px;
+        border: 1px solid #dbdbdb;
+        cursor: pointer;
+        text-align: center;
+        width: 36px;
+        height: 36px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+
+        &--disabled {
+            pointer-events: none;
+            background: #d5d5d5;
+            opacity: .4;
+            color: #232e35;;
+        }
+    }
 
     &__calendar {
         display: flex;

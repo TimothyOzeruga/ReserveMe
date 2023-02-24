@@ -1,10 +1,12 @@
 import { ref } from "vue";
 import { useRouter } from 'vue-router'
 import validator from "validator";
+import {useNotification} from "@kyvg/vue3-notification";
 
 export default function useRegister(user) {
     const router = useRouter();
     let errors = ref({});
+    const { notify } = useNotification();
     let users = [];
 
     const validateRegisterInput = (data) => {
@@ -64,6 +66,10 @@ export default function useRegister(user) {
 
             users.push(user);
             localStorage.setItem("users", JSON.stringify(users));
+            notify({
+                title: "Successful registration",
+                type: "success",
+            });
             router.push("/login");
         }
     }

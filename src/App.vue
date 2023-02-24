@@ -6,6 +6,7 @@
                 <router-view/>
             </div>
             <div id="modal" />
+            <Notifications />
         </main>
     </div>
 </template>

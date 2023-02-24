@@ -1,6 +1,7 @@
 <template>
     <div class="schedule-block">
         <div class="schedule-block__header">
+            <span class="me-4 fw-semibold">{{ selectedDate.format('MM - YYYY') }}</span>
             <span
                 class="schedule-block__arrow me-1"
                 @click="setPrevWeek"
@@ -226,6 +227,7 @@ export default {
             dayNames,
             currentWeek,
             selectedWeek,
+            selectedDate,
             calendarButton,
             calendarButtonDisabled,
             dayNumber,

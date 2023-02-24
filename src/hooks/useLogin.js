@@ -2,10 +2,12 @@ import { useStore } from 'vuex'
 import { ref } from "vue";
 import { useRouter } from 'vue-router'
 import validator from "validator";
+import {useNotification} from "@kyvg/vue3-notification";
 
 export default function UseLogin(credentials) {
     const store = useStore();
     const router = useRouter();
+    const { notify } = useNotification();
     let errors = ref({});
 
     const validateLoginInput = (data) => {
@@ -57,6 +59,10 @@ export default function UseLogin(credentials) {
                     );
                     localStorage.setItem("activeUser", JSON.stringify(activeUser));
                     store.dispatch('setUser', activeUser);
+                    notify({
+                        title: "Successful login",
+                        type: "success",
+                    });
                     router.push('/');
                 } else {
                     errors.value.password = "Password does not match!";

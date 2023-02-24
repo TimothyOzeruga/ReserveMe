@@ -1,4 +1,7 @@
 import {createStore} from 'vuex'
+import {useNotification} from "@kyvg/vue3-notification";
+
+const { notify } = useNotification();
 
 export default createStore({
     state: {
@@ -48,10 +51,20 @@ export default createStore({
             } else {
                 localStorage.setItem("boards", JSON.stringify(getters.getBoards));
             }
+
+            notify({
+                title: "The board removed",
+                type: "success",
+            });
         },
         setSchedule({ commit, getters }, { value, boardId }) {
             commit('MUTATE_SCHEDULE', { value, boardId });
             localStorage.setItem("boards", JSON.stringify(getters.getBoards));
+
+            notify({
+                title: "You have successfully booked the lesson",
+                type: "success",
+            });
         },
     },
     modules: {}

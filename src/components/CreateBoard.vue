@@ -56,11 +56,14 @@ import {reactive, ref} from "vue";
 import { useStore } from 'vuex'
 import validator from "validator";
 import moment from "moment";
+import { useNotification } from "@kyvg/vue3-notification";
 
 export default {
     name: "CreateBoard",
     setup(props, context) {
         const store = useStore();
+        const { notify } = useNotification();
+
 
         const days = ref([
             {
@@ -264,6 +267,10 @@ export default {
             } else {
                 await countMinMaxHours();
                 await store.dispatch('setBoard', boardInfo);
+                notify({
+                    title: "The board created",
+                    type: "success",
+                });
                 close();
             }
         }

@@ -1,4 +1,5 @@
 # reserve-me
+App for booking time during the week
 
 ## Project setup
 ```
